@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python3
 
 import argparse
@@ -11,18 +10,26 @@ from core.config_loader import ConfigLoader
 from core.db_manager import update_databases
 from colorama import init, Fore, Style
 
-banner = f"""
-{Fore.CYAN}88888888ba   ad88888ba    ,ad8888ba,   88888888888
-88      "8b d8"     "8b  d8"'    `"8b  88         
-88      ,8P Y8,         d8'        `8b 88         
-88aaaaaa8P' `Y8aaaaa,   88          88 88aaaaa    
-88""""""'     `" "" 8b, 88          88 88"" ""    
-88                  `8b Y8,        ,8P 88         
-88          Y8a     a8P  Y8a.    .a8P  88         
-88           "Y88888P"    `"Y8888Y"'   88888888888{Style.RESET_ALL}
+# Nuevo banner con colores ANSI directos para mejor visualización en terminal
+banner = """
+\033[36m
+   ____   ____   ____   ____   
+  / __ \ / __ \ / __ \ / __ \  
+ / /_/ // /_/ // /_/ // /_/ /  
+/ ____// ____// ____// ____/   
+/_/    /_/    /_/    /_/       
+\033[0m
 
-{Fore.YELLOW}By URRUON{Style.RESET_ALL}
-{Fore.GREEN}PSOE - Pentesting Security & Offensive Engine{Style.RESET_ALL}
+\033[32m   (\_/)
+   ( •_•)   Pentesting Security & Offensive Engine
+  / >🍪   by URRUON\033[0m
+
+\033[35m██████╗ ███████╗ ██████╗ ███████╗\033[0m
+\033[35m██╔══██╗██╔════╝██╔════╝ ██╔════╝\033[0m
+\033[35m██████╔╝█████╗  ██║  ███╗█████╗  \033[0m
+\033[35m██╔═══╝ ██╔══╝  ██║   ██║██╔══╝  \033[0m
+\033[35m██║     ███████╗╚██████╔╝███████╗\033[0m
+\033[35m╚═╝     ╚══════╝ ╚═════╝ ╚══════╝\033[0m
 """
 
 def main():
@@ -98,8 +105,15 @@ def main():
         self_update()
         exit(0)
     
-    # Actualizar bases de datos si es necesario
-    if args.update_db or config.should_update_databases():
+    # Actualizar bases de datos si se solicita y salir
+    if args.update_db:
+        print(f"\n{Fore.YELLOW}[+] Actualizando bases de datos de vulnerabilidades...{Style.RESET_ALL}")
+        update_databases()
+        config.record_update()
+        print(f"{Fore.GREEN}[+] Bases de datos actualizadas correctamente.{Style.RESET_ALL}")
+        return
+    # Si no se solicita explícitamente, pero el sistema recomienda actualizar
+    if config.should_update_databases():
         print(f"\n{Fore.YELLOW}[+] Actualizando bases de datos de vulnerabilidades...{Style.RESET_ALL}")
         update_databases()
         config.record_update()
@@ -112,8 +126,10 @@ def main():
         print("\nID | Target        | Mode | Start Time           | End Time             | Vulns | Critical | Report")
         print("-"*90)
         for s in scans:
-            print(f"{s[0]:<3}| {s[1]:<13}| {s[2]:<5}| {s[3]:<20}| {s[4]:<20}| {s[5]:<5}| {s[6]:<8}| {s[7] or ''}")
-        exit(0)
+            # Evitar error de formato con None
+            s_fmt = [(str(x) if x is not None else '') for x in s[:8]]
+            print(f"{s_fmt[0]:<3}| {s_fmt[1]:<13}| {s_fmt[2]:<5}| {s_fmt[3]:<20}| {s_fmt[4]:<20}| {s_fmt[5]:<5}| {s_fmt[6]:<8}| {s_fmt[7]}")
+        return
 
     # Mostrar detalles de un escaneo por ID
     if args.show_scan:
