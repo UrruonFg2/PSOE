@@ -1,0 +1,6 @@
+[SCAN]
+# Perfil web: solo escaneo de aplicaciones web
+ports = 80,443
+service_detection = false
+vuln_scan = false
+web_scan = true

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Informe de Escaneo PSOE</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2em; background: #f8f8f8; }
+        h1, h2, h3 { color: #2c3e50; }
+        table { border-collapse: collapse; width: 100%; margin-bottom: 2em; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background: #e0e0e0; }
+        .critical { color: #c0392b; font-weight: bold; }
+        .ok { color: #27ae60; }
+        .section { margin-bottom: 2em; }
+    </style>
+</head>
+<body>
+    <h1>Informe de Escaneo PSOE</h1>
+    <p><b>Fecha:</b> {{ report_date }}</p>
+    <p><b>Objetivo:</b> {{ results.target }}</p>
+    <p><b>Modo de escaneo:</b> {{ results.scan_mode }}</p>
+    <p><b>Duración:</b> {{ results.duration | round(2) }} segundos</p>
+
+    <div class="section">
+        <h2>Puertos y Servicios Detectados</h2>
+        {% if results.network.hosts %}
+        <table>
+            <tr><th>IP</th><th>Estado</th><th>Puerto</th><th>Protocolo</th><th>Servicio</th></tr>
+            {% for host in results.network.hosts %}
+                {% for port in host.ports %}
+                <tr>
+                    <td>{{ host.ip }}</td>
+                    <td>{{ host.status }}</td>
+                    <td>{{ port.port }}</td>
+                    <td>{{ port.protocol }}</td>
+                    <td>{{ port.service }}</td>
+                </tr>
+                {% endfor %}
+            {% endfor %}
+        </table>
+        {% else %}
+        <p>No se detectaron puertos abiertos.</p>
+        {% endif %}
+    </div>
+
+    <div class="section">
+        <h2>Vulnerabilidades Detectadas</h2>
+        {% if results.vulnerabilities %}
+        <table>
+            <tr><th>ID</th><th>Descripción</th><th>Severidad</th><th>CVSS</th><th>Fuente</th><th>Remediación</th></tr>
+            {% for vuln in results.vulnerabilities %}
+            <tr>
+                <td>{{ vuln.id }}</td>
+                <td>{{ vuln.description }}</td>
+                <td class="{{ 'critical' if vuln.severity|lower == 'critical' else '' }}">{{ vuln.severity }}</td>
+                <td>{{ vuln.cvss }}</td>
+                <td>{{ vuln.source }}</td>
+                <td>{% if vuln.remediation %}{{ vuln.remediation|join(', ') }}{% endif %}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% else %}
+        <p>No se detectaron vulnerabilidades conocidas.</p>
+        {% endif %}
+    </div>
+
+    <div class="section">
+        <h2>Información del Sistema Operativo</h2>
+        {% if results.os.os_details or results.os.device_type %}
+        <ul>
+            {% if results.os.os_details %}<li><b>Detalles:</b> {{ results.os.os_details }}</li>{% endif %}
+            {% if results.os.device_type %}<li><b>Tipo de dispositivo:</b> {{ results.os.device_type }}</li>{% endif %}
+        </ul>
+        {% else %}
+        <p>No se pudo detectar el sistema operativo.</p>
+        {% endif %}
+    </div>
+
+    <div class="section">
+        <h2>Servicios Detectados</h2>
+        {% if results.os.services %}
+        <table>
+            <tr><th>Puerto</th><th>Servicio</th></tr>
+            {% for svc in results.os.services %}
+            <tr><td>{{ svc.port }}</td><td>{{ svc.service }}</td></tr>
+            {% endfor %}
+        </table>
+        {% else %}
+        <p>No se detectaron servicios adicionales.</p>
+        {% endif %}
+    </div>
+
+    <div class="section">
+        <h2>Escaneo Web</h2>
+        {% if results.web.nikto or results.web.dirb or results.web.headers %}
+            {% if results.web.nikto %}
+                <h3>Resultados Nikto</h3>
+                <pre>{{ results.web.nikto | tojson(indent=2) }}</pre>
+            {% endif %}
+            {% if results.web.dirb %}
+                <h3>Resultados Dirb</h3>
+                <ul>
+                {% for d in results.web.dirb.directories %}
+                    <li>{{ d }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+            {% if results.web.headers %}
+                <h3>Cabeceras HTTP</h3>
+                <ul>
+                {% for k, v in results.web.headers.items() %}
+                    <li><b>{{ k }}:</b> {{ v }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        {% else %}
+            <p>No se realizó escaneo web o no se obtuvieron resultados.</p>
+        {% endif %}
+    </div>
+
+    <footer>
+        <hr>
+        <p>Generado por PSOE - Pentesting Security & Offensive Engine</p>
+    </footer>
+</body>
+</html>
