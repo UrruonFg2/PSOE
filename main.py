@@ -1,15 +1,10 @@
-    parser.add_argument(
-        '--self-update',
-        action='store_true',
-        help='Actualizar automáticamente la herramienta desde el repositorio (sin tocar la base de datos)'
-    )
+
 #!/usr/bin/env python3
 
-
 import argparse
-from core.scan_db import list_scans, get_scan
 import time
 import os
+from core.scan_db import list_scans, get_scan
 from core.scanner import PSEScanner
 from core.reporter import generate_report
 from core.config_loader import ConfigLoader
@@ -33,38 +28,39 @@ banner = f"""
 def main():
     init(autoreset=True)
     print(banner)
-    
+
     config = ConfigLoader()
-    
+
     parser = argparse.ArgumentParser(
         description='PSOE - Pentesting Security & Offensive Engine',
         formatter_class=argparse.RawTextHelpFormatter
     )
-    parser.add_argument('-t', '--target', required=True, help='Target IP or domain')
+    parser.add_argument('-t', '--target', required=False, help='Target IP or domain')
     parser.add_argument(
-        '-m', '--mode', 
-        choices=['fast', 'full', 'web'], 
-        default=config.get('SCANNING', 'default_profile', fallback='fast'),
+        '-m', '--mode',
+        choices=['fast', 'full', 'web', 'router'],
+        default='fast',
         help='Scanning mode:\n'
              '  fast: Escaneo básico de red y servicios\n'
              '  full: Escaneo completo con análisis de vulnerabilidades\n'
-             '  web : Escaneo enfocado en aplicaciones web'
+             '  web : Escaneo enfocado en aplicaciones web\n'
+             '  router: Escaneo especial para routers'
     )
     parser.add_argument(
-        '-o', '--output', 
+        '-o', '--output',
         help='Output file for report (without extension)'
     )
     parser.add_argument(
-        '-f', '--format', 
-        choices=['html', 'pdf', 'json'], 
-        default=config.get('REPORTING', 'default_format', fallback='html'),
+        '-f', '--format',
+        choices=['html', 'pdf', 'json'],
+        default='html',
         help='Report format:\n'
              '  html: Informe HTML interactivo (predeterminado)\n'
              '  pdf : Informe en formato PDF\n'
              '  json: Datos en bruto en formato JSON'
     )
     parser.add_argument(
-        '--update-db', 
+        '--update-db',
         action='store_true',
         help='Actualizar bases de datos de vulnerabilidades antes de escanear'
     )
@@ -88,7 +84,12 @@ def main():
         type=str,
         help='Filtrar escaneos por dirección IP o dominio objetivo'
     )
-    
+    parser.add_argument(
+        '--self-update',
+        action='store_true',
+        help='Actualizar automáticamente la herramienta desde el repositorio (sin tocar la base de datos)'
+    )
+
     args = parser.parse_args()
 
     # Autoactualización del código fuente (sin tocar la base de datos)
