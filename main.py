@@ -31,11 +31,6 @@ banner = f"""
 """
 
 def main():
-    # Autoactualización del código fuente (sin tocar la base de datos)
-    if args.self_update:
-        from core.self_update import self_update
-        self_update()
-        exit(0)
     init(autoreset=True)
     print(banner)
     
@@ -95,6 +90,12 @@ def main():
     )
     
     args = parser.parse_args()
+
+    # Autoactualización del código fuente (sin tocar la base de datos)
+    if args.self_update:
+        from core.self_update import self_update
+        self_update()
+        exit(0)
     
     # Actualizar bases de datos si es necesario
     if args.update_db or config.should_update_databases():
